@@ -5,59 +5,80 @@ import { connect } from "react-redux";
 // Actions
 import { getUsers } from "../../../actions";
 
+import { Icon } from "semantic-ui-react";
+
+const PaginationWrapper = styled.div`
+  width: auto;
+  margin: auto;
+`;
+
+const PaginationContainer = styled.div`
+  display: flex;
+`;
+
 const PaginationButton = styled.button`
   font-weight: 700;
-  color: ${({ isInactive }) => (isInactive ? "lightgreen" : "black")};
-  background: ${({ isActive }) => (isActive ? "white" : "lightgray")};
+
+  ${({ isActive }) => (isActive ? "color: lightgreen;" : "color: black")};
+  ${({ isInactive }) =>
+    isInactive && "color: lightgray; background: lightgray;"};
+  cursor: pointer;
+  padding: 1rem;
+  background: none;
+  outline: none;
 `;
 
 const Pagination = ({ users, getUsers }) => {
   useEffect(() => {
     getUsers(0);
-    console.log("Getting users");
   }, []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  console.log(users, "=users");
 
   const paginationButtons = [];
-  for (let number = 1; number <= users.numberOfUsers / 10; number++) {
+  const { numberOfUsers } = users;
+  for (let number = 0; number <= numberOfUsers / 10; number++) {
     let newIndex = number * 10;
     paginationButtons.push(
       <PaginationButton
         onClick={() => {
           setCurrentIndex(newIndex);
-          getUsers(currentIndex);
+          getUsers(newIndex);
         }}
         disabled={currentIndex === newIndex}
         isActive={currentIndex === newIndex}
+        key={newIndex}
       >
-        Button
+        {number + 1}
       </PaginationButton>
     );
   }
   return (
-    <div>
-      <PaginationButton
-        onClick={() => {
-          setCurrentIndex(currentIndex - 10);
-          getUsers(currentIndex);
-        }}
-        disabled={currentIndex <= 10}
-        isInactive={currentIndex <= 10}
-      >
-        Go backwards
-      </PaginationButton>
-      {paginationButtons}
-      <PaginationButton
-        onClick={() => {
-          setCurrentIndex(currentIndex + 10);
-          getUsers(currentIndex);
-        }}
-      >
-        Go forward
-      </PaginationButton>
-    </div>
+    <PaginationContainer>
+      <PaginationWrapper>
+        <PaginationButton
+          onClick={() => {
+            setCurrentIndex(currentIndex - 10);
+            getUsers(currentIndex - 10);
+          }}
+          disabled={currentIndex === 0}
+          isInactive={currentIndex === 0}
+        >
+          <Icon name="angle left" />
+        </PaginationButton>
+        {paginationButtons}
+        <PaginationButton
+          onClick={() => {
+            setCurrentIndex(currentIndex + 10);
+            getUsers(currentIndex + 10);
+          }}
+          disabled={currentIndex + 10 > numberOfUsers}
+          isInactive={currentIndex + 10 > numberOfUsers}
+        >
+          <Icon name="angle right" />
+        </PaginationButton>
+      </PaginationWrapper>
+    </PaginationContainer>
   );
 };
 

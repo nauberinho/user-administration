@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "react-proptypes";
 import styled from "styled-components";
 import mediaQueries from "../media-queries";
 import { fadeIn } from "../keyframes";

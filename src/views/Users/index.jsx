@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from "react";
-import PropTypes from "react-proptypes";
 import styled from "styled-components";
 import { connect } from "react-redux";
 import moment from "moment";
 
-import Avatar from "@material-ui/core/Avatar";
+import { Checkbox } from "semantic-ui-react";
+import { Icon } from "semantic-ui-react";
 import theme from "../../shared/theme";
 import mediaQueries from "../../shared/media-queries";
 
 // Actions
-import { getUsers, updateUser, createUser } from "../../actions";
+import {
+  updateUser,
+  createUser,
+  deleteUser,
+  deleteUsers,
+  resetState
+} from "../../actions";
 
 // Local components
 import Form from "./components/Form";
+import DeletePrompt from "./components/DeletePrompt";
 import Pagination from "./components/Pagination";
 
 // Shared components
 import SectionContainer from "../../shared/components/SectionContainer";
-import { string } from "postcss-selector-parser";
 
 const Content = styled.div`
   @media ${mediaQueries.laptop("min")} {
@@ -57,7 +63,6 @@ const Introduction = styled.div`
 `;
 
 const UsersTable = styled.div`
-  border: 2px solid orange;
   margin: auto;
   width: 100%;
 `;
@@ -68,14 +73,91 @@ const UserPropertyTitle = styled.div`
   font-weight: 700;
 `;
 
-const UserItem = styled.div`
-  padding: 1rem 0;
-  border: 1px solid gray;
+const UserButtonsContainer = styled.div`
+  flex: 0.5;
+  @media ${mediaQueries.tablet("max")} {
+    width: 10%;
+    padding: 1rem 0;
+    .icon {
+      font-size: 1rem;
+    }
+  }
   display: flex;
 `;
 
+const UserItem = styled.div`
+  padding: 1rem 0;
+  border-top: 1px solid gray;
+  display: flex;
+  overflow: hidden;
+  flex-wrap: wrap;
+  @media ${mediaQueries.tablet("max")} {
+    font-size: 0.8rem;
+    flex-direction: column;
+  }
+`;
+
+const TableProperties = styled.div`
+  padding: 1rem 0;
+  overflow: hidden;
+  flex-wrap: wrap;
+  @media ${mediaQueries.tablet("min")} {
+    display: flex;
+  }
+  @media ${mediaQueries.tablet("max")} {
+    font-size: 0.8rem;
+    display: none;
+  }
+`;
+
+const EditButton = styled.button`
+  outline: none;
+  background: none;
+  cursor: pointer;
+  border: none;
+`;
 const UserProperty = styled.div`
   flex: 1;
+  @media ${mediaQueries.tablet("max")} {
+    width: 50%;
+  }
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const UserPropertyLabel = styled.div`
+  color: lightgray;
+  font-size: 0.7rem;
+  @media ${mediaQueries.tablet("min")} {
+    display: none;
+  }
+`;
+
+const AddButton = styled.button`
+background: none
+border: none;
+outline: none;
+padding: 1rem 1.5rem 1rem 0;
+font-weight: 700;
+border-radius: 5px;
+cursor: pointer;
+`;
+
+const DeleteButton = styled.button`
+  background: ${theme.colors.red.main};
+  border: none;
+  color: white;
+  outline: none;
+  padding: 1rem 1.5rem;
+  font-weight: 700;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
+const AddIcon = styled(Icon)`
+  color: ${theme.colors.green.main};
+  cursor: pointer;
 `;
 
 const strings = {
@@ -91,26 +173,68 @@ const strings = {
   }
 };
 
-const Users = ({ getUsers, users, updateUser, createUser }) => {
-  const [isEditingUser, setIsEditingUser] = useState(false);
-  const [userToUpdate, setUserToUpdate] = useState(null);
+const Users = ({
+  users,
+  onUpdateUser,
+  onCreateUser,
+  onDeleteUser,
+  onDeleteUsers,
+  onResetState
+}) => {
+  const [isUpdatingUser, setIsUpdatingUser] = useState(false);
+  const [userToUpdate, setUserToUpdate] = useState(undefined);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [markedUsers, setMarkedUsers] = useState([]);
+  const [isDeletePromptOpen, setIsDeletePromptOpen] = useState(false);
+
+  useEffect(() => {
+    setIsUpdatingUser(false);
+    setUserToUpdate(undefined);
+    setIsCreatingUser(false);
+    setMarkedUsers([]);
+    setIsDeletePromptOpen(false);
+  }, [users.successMessage]);
 
   return (
     <SectionContainer>
       <Form
-        isOpen={isEditingUser || isCreatingUser}
+        isOpen={isUpdatingUser || isCreatingUser}
         onCancel={
-          isEditingUser
+          isUpdatingUser
             ? () => {
-                setIsEditingUser(false);
+                setIsUpdatingUser(false);
                 setUserToUpdate(null);
+                onResetState();
+                setUserToUpdate(undefined);
               }
-            : () => setIsCreatingUser(false)
+            : () => {
+                setIsCreatingUser(false);
+                onResetState();
+              }
         }
-        onConfirm={isEditingUser ? updateUser : createUser}
-        strings={isEditingUser ? strings.update : strings.create}
+        onConfirm={
+          isUpdatingUser
+            ? (user, userId) => {
+                onUpdateUser(user, userId);
+                onResetState();
+                setUserToUpdate(undefined);
+              }
+            : onCreateUser
+        }
+        strings={isUpdatingUser ? strings.update : strings.create}
         userToUpdate={userToUpdate}
+      />
+      <DeletePrompt
+        isOpen={isDeletePromptOpen}
+        onDelete={() =>
+          markedUsers.length > 1
+            ? onDeleteUsers(markedUsers)
+            : onDeleteUser(markedUsers[0])
+        }
+        onCancel={() => {
+          setIsDeletePromptOpen(false);
+          onResetState();
+        }}
       />
       <Heading>
         <Title>A list of users</Title>
@@ -119,41 +243,77 @@ const Users = ({ getUsers, users, updateUser, createUser }) => {
 
       <Content>
         <UsersTable>
-          <UserItem>
+          <TableProperties>
+            <UserButtonsContainer />
             <UserPropertyTitle>Name</UserPropertyTitle>
             <UserPropertyTitle>Email</UserPropertyTitle>
             <UserPropertyTitle>Date Created</UserPropertyTitle>
             <UserPropertyTitle>Date Modified</UserPropertyTitle>
-          </UserItem>
-          {users.users.map((user, key) => {
-            const date = new Date(user.datecreated * 1000);
+          </TableProperties>
+          {users.users.map(user => {
             return (
-              <UserItem>
+              <UserItem key={user.userid}>
+                <UserButtonsContainer>
+                  <Checkbox
+                    onChange={() => {
+                      markedUsers.includes(user.userid)
+                        ? setMarkedUsers(
+                            markedUsers.filter(u => u !== user.userid)
+                          )
+                        : setMarkedUsers([...markedUsers, user.userid]);
+                    }}
+                  />
+                  <EditButton
+                    onClick={() => {
+                      setIsUpdatingUser(true);
+                      setUserToUpdate(user);
+                    }}
+                  >
+                    <Icon name="edit outline" />
+                  </EditButton>
+                </UserButtonsContainer>
                 <UserProperty>
                   {user.namefirst} {user.namelast}{" "}
+                  <UserPropertyLabel>Name</UserPropertyLabel>
                 </UserProperty>
-                <UserProperty>{user.email}</UserProperty>
+                <UserProperty>
+                  {user.email}
+                  <UserPropertyLabel>Email</UserPropertyLabel>
+                </UserProperty>
                 <UserProperty>
                   {moment.unix(user.datecreated).format("DD MMM YYYY hh:mm a")}
+                  <UserPropertyLabel>Date Created</UserPropertyLabel>
                 </UserProperty>
                 <UserProperty>
                   {moment.unix(user.datemodified).format("DD MMM YYYY hh:mm a")}
-                </UserProperty>
-                <UserProperty
-                  onClick={() => {
-                    setIsEditingUser(true);
-                    setUserToUpdate(user);
-                  }}
-                >
-                  Update user
+                  <UserPropertyLabel>Last Modified</UserPropertyLabel>
                 </UserProperty>
               </UserItem>
             );
           })}
           <UserItem>
-            <UserPropertyTitle onClick={() => setIsCreatingUser(true)}>
-              Create user
-            </UserPropertyTitle>
+            <UserButtonsContainer />
+            {!markedUsers.length ? (
+              <UserPropertyTitle>
+                <AddButton
+                  onClick={() => {
+                    setUserToUpdate(undefined);
+                    setIsCreatingUser(true);
+                  }}
+                >
+                  <AddIcon name="add user" /> Add a user
+                </AddButton>
+              </UserPropertyTitle>
+            ) : (
+              <UserPropertyTitle>
+                <DeleteButton onClick={() => setIsDeletePromptOpen(true)}>
+                  Delete user(s)
+                </DeleteButton>
+              </UserPropertyTitle>
+            )}
+            <UserPropertyTitle />
+            <UserPropertyTitle />
+            <UserPropertyTitle />
           </UserItem>
         </UsersTable>
       </Content>
@@ -162,17 +322,16 @@ const Users = ({ getUsers, users, updateUser, createUser }) => {
   );
 };
 
-Users.propTypes = {
-  getUsers: PropTypes.func
-};
-
 const mapStateToProps = state => ({
   users: state.users
 });
 
 const mapDispatchToProps = dispatch => ({
-  updateUser: user => dispatch(updateUser(user)),
-  createUser: user => dispatch(createUser(user))
+  onUpdateUser: (user, userId) => dispatch(updateUser(user, userId)),
+  onCreateUser: user => dispatch(createUser(user)),
+  onDeleteUser: userId => dispatch(deleteUser(userId)),
+  onDeleteUsers: userIds => dispatch(deleteUsers(userIds)),
+  onResetState: () => dispatch(resetState())
 });
 
 export default connect(

@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "react-proptypes";
 import { withRouter } from "react-router-dom";
 
 import styled from "styled-components";
@@ -24,6 +23,7 @@ const Container = styled.div`
   @media ${mediaQueries.tablet("max")} {
     padding: 0rem 1rem 2rem;
     background: none;
+    display: block;
   }
 `;
 
@@ -39,11 +39,16 @@ const LogoWrapper = styled.div`
   @media ${mediaQueries.tablet("max")} {
     text-align: center;
     font-size: 1.4rem;
+    padding: 1rem;
   }
 `;
 
 const Logo = styled.img`
   height: 2rem;
+  display: block;
+  @media ${mediaQueries.tablet("max")} {
+    margin: auto;
+  }
 `;
 
 const MenuWrapper = styled.div`
@@ -68,7 +73,7 @@ const StyledButton = styled.button`
   color: ${theme.colors.black.main};
   font-size: 1.5rem;
   @media ${mediaQueries.tablet("max")} {
-    font-size: 1.8rem;
+    font-size: 1.3rem;
   }
   font-weight: 550;
   background: none;
