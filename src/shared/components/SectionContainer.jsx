@@ -6,6 +6,7 @@ import { fadeIn } from "../keyframes";
 
 const Container = styled.div`
   margin: auto;
+  width: 100%;
   background: white;  
   overflow: hidden;
   word-wrap: break-word;

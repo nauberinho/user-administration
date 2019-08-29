@@ -79,7 +79,7 @@ const Container = styled.div`
     padding: 0rem 30rem;
   }
   @media ${mediaQueries.laptopL("max")} {
-    padding: 0rem 10rem;
+    padding: 0rem 5rem;
   }
   @media ${mediaQueries.laptop("max")} {
     padding: 0rem 2rem;
