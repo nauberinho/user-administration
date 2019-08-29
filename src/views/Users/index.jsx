@@ -13,6 +13,7 @@ import { getUsers, updateUser, createUser } from "../../actions";
 
 // Local components
 import Form from "./components/Form";
+import Pagination from "./components/Pagination";
 
 // Shared components
 import SectionContainer from "../../shared/components/SectionContainer";
@@ -91,7 +92,6 @@ const strings = {
 };
 
 const Users = ({ getUsers, users, updateUser, createUser }) => {
-  useEffect(() => getUsers(), []);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [userToUpdate, setUserToUpdate] = useState(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -157,7 +157,7 @@ const Users = ({ getUsers, users, updateUser, createUser }) => {
           </UserItem>
         </UsersTable>
       </Content>
-      <Form />
+      <Pagination />
     </SectionContainer>
   );
 };
@@ -171,7 +171,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  getUsers: () => dispatch(getUsers()),
   updateUser: user => dispatch(updateUser(user)),
   createUser: user => dispatch(createUser(user))
 });

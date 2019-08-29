@@ -6,7 +6,11 @@ const initialState = { users: [] };
 const users = (state = initialState, action) => {
   switch (action.type) {
     case GET_USERS_SUCCESS:
-      return { ...state, users: action.payload };
+      return {
+        ...state,
+        users: action.payload.items,
+        numberOfUsers: action.payload.totalcount
+      };
     default:
       return state;
   }

@@ -1,12 +1,12 @@
 import axios from "axios";
 
 const BASE_URL =
-  "http://localhost:8088/https://api-sandbox.mysitoo.com/v2/accounts/90316/";
+  "http://localhost:8088/https://api-sandbox.mysitoo.com/v2/accounts/90316/sites/1/users.json";
 
 export const GET_USERS = "GET_USERS";
 export const GET_USERS_SUCCESS = "GET_USERS_SUCCESS";
 export const GET_USERS_FAILURE = "GET_USERS_FAILURE";
-export const getUsers = () => {
+export const getUsers = index => {
   return async dispatch => {
     dispatch({ type: GET_USERS });
     try {
@@ -17,10 +17,10 @@ export const getUsers = () => {
 
       const { data } = await axios({
         method: "GET",
-        url: BASE_URL + "/sites/1/users.json",
+        url: `${BASE_URL}?start=${index}`,
         auth: auth
       });
-      dispatch({ type: GET_USERS_SUCCESS, payload: data.items });
+      dispatch({ type: GET_USERS_SUCCESS, payload: data });
     } catch (error) {
       dispatch({ type: GET_USERS_FAILURE, payload: error });
     }
@@ -32,7 +32,7 @@ export const UPDATE_USER_SUCCESS = "UPDATE_USER_SUCCESS";
 export const UPDATE_USER_FAILURE = "UPDATE_USER_FAILURE";
 export const updateUser = user => {
   return async dispatch => {
-    dispatch({ type: GET_USERS });
+    dispatch({ type: UPDATE_USER });
     try {
       const auth = {
         username: "90316-125",
@@ -45,9 +45,9 @@ export const updateUser = user => {
         auth: auth,
         data: user
       });
-      dispatch({ type: GET_USERS_SUCCESS, payload: data.items });
+      dispatch({ type: UPDATE_USER_SUCCESS, payload: data.items });
     } catch (error) {
-      dispatch({ type: GET_USERS_FAILURE, payload: error });
+      dispatch({ type: UPDATE_USER_FAILURE, payload: error });
     }
   };
 };
@@ -57,7 +57,7 @@ export const CREATE_USER_SUCCESS = "CREATE_USER_SUCCESS";
 export const CREATE_USER_FAILURE = "CREATE_USER_FAILURE";
 export const createUser = user => {
   return async dispatch => {
-    dispatch({ type: GET_USERS });
+    dispatch({ type: CREATE_USER });
     try {
       const auth = {
         username: "90316-125",
@@ -70,9 +70,9 @@ export const createUser = user => {
         auth: auth,
         data: user
       });
-      dispatch({ type: GET_USERS_SUCCESS, payload: data.items });
+      dispatch({ type: CREATE_USER_SUCCESS, payload: data.items });
     } catch (error) {
-      dispatch({ type: GET_USERS_FAILURE, payload: error });
+      dispatch({ type: CREATE_USER_FAILURE, payload: error });
     }
   };
 };
